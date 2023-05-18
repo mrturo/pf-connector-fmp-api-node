@@ -1,9 +1,10 @@
 import App from './application/app';
 import { Base as BaseController } from './application/controllers/base.controller';
+import { Portfolio as PortfolioController } from './application/controllers/portfolio.controller';
 
 export class Server {
   public static init(): App {
-    return new App([new BaseController()]);
+    return new App([new BaseController(), new PortfolioController()]);
   }
 }
 Server.init().listen();

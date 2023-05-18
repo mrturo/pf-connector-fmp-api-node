@@ -1,5 +1,8 @@
 export class Constants {
-  public static XXX(): string {
-    return 'XXX';
+  public static FMP_HOSTNAME(): string {
+    return 'financialmodelingprep.com';
+  }
+  public static FMP_BASE_URL(): string {
+    return 'https://financialmodelingprep.com/api/v3/';
   }
 }

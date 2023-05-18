@@ -58,8 +58,8 @@ export class Configuration {
       3000
     );
   }
-  public static xxx(): string {
-    return new Configuration(process.env.XXX).value;
+  public static fpmApiKey(): string {
+    return new Configuration(process.env.FPM_APIKEY).value;
   }
   public static showValues(
     preLog: number | string | undefined | null = undefined
