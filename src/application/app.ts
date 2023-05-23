@@ -1,4 +1,5 @@
 import bodyParser from 'body-parser';
+import timeout from 'connect-timeout';
 import express from 'express';
 import helmet from 'helmet';
 import { Configuration as ConfigurationUtil } from '../domain/util/configuration.util';
@@ -51,6 +52,7 @@ class App {
     );
     const swagger: SwaggerUtil = new SwaggerUtil();
     this.app.use(swagger.urlPath, swagger.serve, swagger.setup);
+    this.app.use(timeout(120000));
   }
   private initializeRoutes(controllers: ControllerInterface[]) {
     controllers.forEach((controller: ControllerInterface) => {

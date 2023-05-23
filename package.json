@@ -27,6 +27,7 @@
     "docker-test:start": "npm run docker-test:image-build && npm run docker-test:container-up && (docker logs -f %npm_package_name%-app-1 || docker logs -f $npm_package_name-app-1 || echo 0) && (docker cp %npm_package_name%-app-1:/app/coverage/ coverage || docker export $npm_package_name-app-1:\\app\\coverage\\ coverage || echo 0)",
     "docker-test:stop": "npm run docker-test:container-down && npm run docker:image-remove",
     "docker-test:restart": "(npm run docker-test:stop || echo 0) && npm run re-install-build && npm run docker-test:start",
+    "quick-check": "npm run test-coverage:complete && npm run prettier-lint",
     "install-build": "npm install && npm run build",
     "install-build:production": "npm run install:production && npm run build",
     "install:production": "npm install --omit=dev",
@@ -57,6 +58,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/body-parser": "^1.19.2",
+    "@types/connect-timeout": "^0.0.37",
     "@types/express": "^4.17.17",
     "@types/humanize-duration": "^3.27.1",
     "@types/jest": "^29.5.0",
@@ -66,6 +68,7 @@
     "@types/yamljs": "^0.2.31",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
+    "connect-timeout": "^1.9.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "helmet": "^6.1.1",

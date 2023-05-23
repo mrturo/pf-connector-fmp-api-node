@@ -58,8 +58,11 @@ export class Configuration {
       3000
     );
   }
-  public static fpmApiKey(): string {
-    return new Configuration(process.env.FPM_APIKEY).value;
+  public static fmpApiKey(value: string | undefined = undefined): string {
+    if (value && typeof value === 'string' && value.trim().length > 0) {
+      return new Configuration(value.trim()).value;
+    }
+    return new Configuration(process.env.FMP_APIKEY).value;
   }
   public static showValues(
     preLog: number | string | undefined | null = undefined
@@ -71,6 +74,10 @@ export class Configuration {
       `Environment Variables: ${Configuration.packageName()} (${
         currentEnv.value
       } - ${currentEnv.file})`
+    ]);
+    LoggerUtil.debug([
+      preLog,
+      ` * fmpApiKey: ${Configuration.hideCharacters(Configuration.fmpApiKey())}`
     ]);
     LoggerUtil.debug([preLog, ` * nodeEnv: ${Configuration.nodeEnv()}`]);
     LoggerUtil.debug([preLog, ` * port: ${Configuration.port()}`]);

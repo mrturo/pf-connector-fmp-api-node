@@ -3,10 +3,6 @@ export class Symbol {
     const result: string[] = [];
     const splittedValue: string[] = symbol
       .toUpperCase()
-      // .replaceAll(';', ',')
-      // .replaceAll('|', ',')
-      // .replaceAll('_', ',')
-      // .replaceAll(':', ',')
       .split(',')
       .filter((s) => s.trim().length > 0);
     for (const v of splittedValue) {
@@ -32,5 +28,29 @@ export class Symbol {
   }
   public static getSymbolString(symbol: string | string[]): string {
     return Symbol.getSymbol(symbol).join(',');
+  }
+  public static chunkSymbol(
+    symbols: string | string[],
+    chunkSize: number
+  ): string[][] {
+    const chunkedArray: string[][] = [];
+    let index = 0;
+    symbols = Symbol.getSymbol(symbols);
+    while (index < symbols.length) {
+      chunkedArray.push(symbols.slice(index, index + chunkSize));
+      index += chunkSize;
+    }
+    return chunkedArray;
+  }
+  public static chunkSymbolString(
+    symbols: string | string[],
+    chunkSize: number
+  ): string[] {
+    const result = [];
+    const chunkeSymbols = Symbol.chunkSymbol(symbols, chunkSize);
+    for (const chunk of chunkeSymbols) {
+      result.push(chunk.join(','));
+    }
+    return result;
   }
 }

@@ -1,30 +1,32 @@
 import axios from 'axios';
 import https from 'https';
 import { Infrastructure as InfrastructureError } from '../error/infrastructure.error';
+import { ApiRest as ApiRestInterface } from './api-rest.interface.util';
 
-export class ApiRest {
+export class ApiRest implements ApiRestInterface {
   private static readonly method = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
     GET: 'GET',
     HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
     POST: 'POST',
     PUT: 'PUT',
-    DELETE: 'DELETE',
-    CONNECT: 'CONNECT',
-    OPTIONS: 'OPTIONS',
-    TRACE: 'TRACE',
-    PATCH: 'PATCH'
+    TRACE: 'TRACE'
   };
   public static async exe(
     url: string,
     method: string | undefined = undefined
   ): Promise<any> {
     try {
-      const config: ApiRest = new ApiRest(url, method);
-      const res = await axios(config.json);
-      return res.data;
+      const apiRest: ApiRest = new ApiRest(url, method);
+      return await apiRest.exe();
     } catch (error) {
       if (error instanceof Error) {
-        throw new InfrastructureError(`Executing '${url}' => ${error.message}`);
+        throw error.message.startsWith(`Executing '${url}' => `) === true
+          ? error
+          : new InfrastructureError(`Executing '${url}' => ${error.message}`);
       }
     }
   }
@@ -34,10 +36,10 @@ export class ApiRest {
     this.method = method;
     this.url = url;
   }
-  private get method(): string {
+  public get method(): string {
     return this._method;
   }
-  private set method(value: string | undefined) {
+  public set method(value: string | undefined) {
     value = (value || '').trim().toUpperCase();
     if (value.length === 0) {
       value = ApiRest.method.GET;
@@ -58,28 +60,40 @@ export class ApiRest {
     }
     this._method = value;
   }
-  private get url(): string {
+  public get url(): string {
     return this._url;
   }
-  private set url(value: string) {
+  public set url(value: string) {
     value = (value || '').trim();
     if (value.length === 0) {
       throw new InfrastructureError(`URL not found`);
     }
     this._url = value;
   }
-  private get json(): object {
+  public get json(): object {
     return {
       method: this.method,
       url: this.url,
       headers: {
         'Content-Type': 'application/json'
       },
-      timeout: 10000,
+      timeout: 100000,
       httpsAgent: new https.Agent({
         keepAlive: true,
         rejectUnauthorized: false
       })
     };
+  }
+  public async exe() {
+    try {
+      const res = await axios(this.json);
+      return res.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InfrastructureError(
+          `Executing '${this.url}' => ${error.message}`
+        );
+      }
+    }
   }
 }

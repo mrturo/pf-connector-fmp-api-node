@@ -1,6 +1,7 @@
 import { Portfolio as PortfolioService } from '../../../src/application/service/portfolio.service';
 import { Portfolio as PortfolioModel } from '../../../src/domain/model/portfolio.model';
 import { Stock as StockModel } from '../../../src/domain/model/stock.model';
+import { Configuration as ConfigurationUtil } from '../../../src/domain/util/configuration.util';
 
 describe('Class Portfolio Service', () => {
   it('update - Happy Path', async () => {
@@ -9,6 +10,7 @@ describe('Class Portfolio Service', () => {
     stocks.set('VOO', new StockModel('VOO'));
     stocks.set('VFIAX', new StockModel('VFIAX'));
     const portfolio: PortfolioModel = await PortfolioService.update(
+      ConfigurationUtil.fmpApiKey(),
       new PortfolioModel(stocks)
     );
     const json = portfolio
@@ -43,22 +45,31 @@ describe('Class Portfolio Service', () => {
     stocks.set('AMZN', new StockModel('AMZN', 1.138948));
     stocks.set('VXUS', new StockModel('VXUS', 2.001203));
     const portfolio: PortfolioModel = await PortfolioService.update(
+      ConfigurationUtil.fmpApiKey(),
       new PortfolioModel(stocks)
     );
     const extendedPortfolio: PortfolioModel =
-      await PortfolioService.getExtended(portfolio, 3);
+      await PortfolioService.getExtended(
+        ConfigurationUtil.fmpApiKey(),
+        portfolio,
+        3
+      );
     expect(portfolio.json().length).toBeLessThan(
       extendedPortfolio.json().length
     );
-  }, 40000);
+  }, 75000);
   it('getExtended - Happy Path 2', async () => {
     const stocks: Map<string, StockModel> = new Map<string, StockModel>();
     stocks.set('AMZN', new StockModel('AMZN', 1.138948));
     const portfolio: PortfolioModel = await PortfolioService.update(
+      ConfigurationUtil.fmpApiKey(),
       new PortfolioModel(stocks)
     );
     const extendedPortfolio: PortfolioModel =
-      await PortfolioService.getExtended(portfolio);
+      await PortfolioService.getExtended(
+        ConfigurationUtil.fmpApiKey(),
+        portfolio
+      );
     const preAMZN = portfolio.stocks.get('AMZN') || new StockModel('AMZN');
     const postAMZN =
       extendedPortfolio.stocks.get('AMZN') || new StockModel('AMZN');

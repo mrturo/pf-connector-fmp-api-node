@@ -7,10 +7,8 @@ describe('Class Configuration', () => {
     expect(ConfigurationUtil.packageName()).not.toBe('');
     expect(ConfigurationUtil.packageName()).not.toBeNull();
     expect(ConfigurationUtil.packageName()).not.toBeUndefined();
+    expect(ConfigurationUtil.fmpApiKey('Hola')).toBe('Hola');
     expect(ConfigurationUtil.port()).toBeGreaterThan(0);
-    expect(ConfigurationUtil.fpmApiKey()).not.toBe('');
-    expect(ConfigurationUtil.fpmApiKey()).not.toBeNull();
-    expect(ConfigurationUtil.fpmApiKey()).not.toBeUndefined();
     expect(ConfigurationUtil.isTrue('')).toBe(true);
     expect(ConfigurationUtil.isTrue('N')).toBe(false);
     expect(ConfigurationUtil.isTrue('S')).toBe(true);
