@@ -1,7 +1,7 @@
 import { Configuration as ConfigurationUtil } from '../../domain/util/configuration.util';
 
 export class QueryRequest {
-  public static getValue(requestValue: any): string {
+  public static GetValue(requestValue: any): string {
     let fmpApiKey: string | undefined = undefined;
     if (requestValue) {
       if (
@@ -13,9 +13,9 @@ export class QueryRequest {
         fmpApiKey = requestValue.trim();
       }
     }
-    return ConfigurationUtil.fmpApiKey(fmpApiKey);
+    return ConfigurationUtil.FmpApiKey(fmpApiKey);
   }
-  public static getFmpApiKey(requestValue: any): string {
-    return ConfigurationUtil.fmpApiKey(QueryRequest.getValue(requestValue));
+  public static GetFmpApiKey(requestValue: any): string {
+    return ConfigurationUtil.FmpApiKey(QueryRequest.GetValue(requestValue));
   }
 }

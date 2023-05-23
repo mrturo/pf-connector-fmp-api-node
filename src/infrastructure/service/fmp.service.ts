@@ -1,31 +1,40 @@
+import retry from 'async-retry';
+import * as fs from 'fs-extra';
+import { Backup as BackupService } from '../../application/service/backup.service';
 import { Symbol as SymbolUtil } from '../../application/util/symbol.util';
 import { Configuration as ConfigurationUtil } from '../../domain/util/configuration.util';
 import { Constants as ConstantsUtil } from '../../domain/util/constants.util';
+import { Logger as LoggerUtil } from '../../domain/util/logger.util';
+import { StringUtil } from '../../domain/util/string.util';
+import { Infrastructure as InfrastructureError } from '../error/infrastructure.error';
 import { ApiRest as ApiRestInterface } from '../util/api-rest.interface.util';
 import { ApiRest as ApiRestUtil } from '../util/api-rest.util';
 
 export class FMP {
-  public static validApiKey(apiKey: string | undefined): boolean {
-    const isValid: boolean = (apiKey || '').trim() !== '';
-    if (isValid === false) {
-      throw new Error('FMP API KEY is not valid');
+  private static MaxExecutions = 5;
+  public static ValidApiKey(apiKey: string | undefined): boolean {
+    if (!StringUtil.TrimAndCheckEmpty(apiKey)) {
+      throw new InfrastructureError('FMP API KEY is not valid');
     }
-    return isValid;
+    return true;
   }
-  private _apiRest!: ApiRestInterface;
+  private _apiRestService!: ApiRestInterface;
   private _apiKey!: string;
   constructor(
-    apiRest: ApiRestInterface | undefined = undefined,
-    apiKey: string = ConfigurationUtil.fmpApiKey()
+    apiRestService: ApiRestInterface | undefined = undefined,
+    apiKey: string = ConfigurationUtil.FmpApiKey()
   ) {
-    this.apiRest = apiRest ? apiRest : new ApiRestUtil('url');
+    this.apiRestService = apiRestService
+      ? apiRestService
+      : new ApiRestUtil('url');
     this.apiKey = apiKey.trim();
+    FMP.ValidApiKey(this.apiKey);
   }
-  public get apiRest(): ApiRestInterface {
-    return this._apiRest;
+  public get apiRestService(): ApiRestInterface {
+    return this._apiRestService;
   }
-  public set apiRest(value: ApiRestInterface) {
-    this._apiRest = value;
+  public set apiRestService(value: ApiRestInterface) {
+    this._apiRestService = value;
   }
   public get apiKey(): string {
     return this._apiKey;
@@ -33,35 +42,82 @@ export class FMP {
   public set apiKey(value: string) {
     this._apiKey = value;
   }
-  public async ApiRest(url: string, execution = 1): Promise<any> {
-    try {
-      this.apiRest.url = url;
-      return await this.apiRest.exe();
-    } catch (error) {
-      if (error instanceof Error) {
-        if (
-          error.message.includes('Request failed with status code 429') ===
-            true &&
-          execution < 5
-        ) {
-          return this.ApiRest(url, execution++);
-        } else {
-          throw error;
-        }
+  public async exe(url: string): Promise<any> {
+    this.apiRestService.url = url;
+    return await retry(
+      async () => {
+        return await this.apiRestService.exe();
+      },
+      { retries: FMP.MaxExecutions }
+    );
+  }
+  public async saveDate(url: string, path = ''): Promise<any> {
+    path = path.trim();
+    const result = await this.exe(url.trim());
+    if (path !== '') {
+      try {
+        await BackupService.CreateFolderBase();
+        await fs.promises.writeFile(
+          path,
+          JSON.stringify({
+            date: new Date(),
+            body: result
+          })
+        );
+      } catch (error) {
+        const pathLength = path.split('\\').length;
+        const filename = path.split('\\')[pathLength - 1].split('.')[0];
+        const shortFilename =
+          filename.length > 100 ? `${filename.substring(0, 100)}..` : filename;
+        const errorMsg = `${error}`;
+        LoggerUtil.error(
+          `Saving Data => ${errorMsg.replace(filename, shortFilename)}`
+        );
       }
     }
+    return result;
   }
-
+  public async getData(
+    url: string,
+    path = '',
+    forceUpdate = false,
+    now = new Date()
+  ): Promise<any> {
+    let result: any = {};
+    if (
+      forceUpdate === true ||
+      path.trim() === '' ||
+      fs.existsSync(path.trim()) === false
+    ) {
+      result = await this.saveDate(url, path);
+    } else {
+      const bodyFile = JSON.parse(fs.readFileSync(path.trim(), 'utf8'));
+      if (bodyFile.date && bodyFile.body) {
+        const date = new Date(bodyFile.date);
+        date.setDate(date.getDate() + BackupService.maxDays);
+        if (date < now) {
+          result = await this.saveDate(url, path);
+        } else {
+          result = bodyFile.body;
+        }
+      } else {
+        result = await this.saveDate(url, path);
+      }
+    }
+    return result;
+  }
   public async etfHolder(symbol: string | string[]): Promise<any> {
-    FMP.validApiKey(this.apiKey);
     return (
       await Promise.all(
-        SymbolUtil.getSymbol(symbol).map(async (value) => {
+        SymbolUtil.GetSymbol(symbol).map(async (value) => {
           return {
             symbol: value,
-            holders: await this.ApiRest(
+            holders: await this.getData(
               `${ConstantsUtil.FMP_BASE_URL()}etf-holder/${value}?apikey=${
                 this.apiKey
+              }`,
+              `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-etf-holder-${value}${
+                BackupService.fileExtension
               }`
             )
           };
@@ -70,11 +126,10 @@ export class FMP {
     ).sort((a, b) => a.symbol.localeCompare(b.symbol));
   }
   public async profile(symbol: string | string[]): Promise<any> {
-    FMP.validApiKey(this.apiKey);
     const allAvailableSymbols = (await this.availableTraded()).map(
       (a: any) => a.symbol
     );
-    const localSymbol: string[] = SymbolUtil.getSymbol(symbol).filter(
+    const localSymbol: string[] = SymbolUtil.GetSymbol(symbol).filter(
       (x) => allAvailableSymbols.includes(x) === true
     );
     const subSymbol: string[][] = [];
@@ -86,61 +141,127 @@ export class FMP {
     subSymbol.push(localSymbol.slice(i, localSymbol.length));
     let result: any[] = [];
     for (const sub of subSymbol) {
+      const symbols = SymbolUtil.GetSymbolString(sub);
       result = result.concat(
-        await this.ApiRest(
-          `${ConstantsUtil.FMP_BASE_URL()}profile/${SymbolUtil.getSymbolString(
-            sub
-          )}?apikey=${this.apiKey}`
+        await this.getData(
+          `${ConstantsUtil.FMP_BASE_URL()}profile/${symbols}?apikey=${
+            this.apiKey
+          }`,
+          `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-profile-${symbols}${
+            BackupService.fileExtension
+          }`
         )
       );
     }
     return result.sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
   public async historicalPriceFull(symbol: string | string[]): Promise<any> {
-    FMP.validApiKey(this.apiKey);
-    return []
+    symbol = SymbolUtil.GetSymbol(symbol);
+    BackupService.CreateFolderBase();
+    BackupService.CleanOldData();
+    const stocks: Map<string, { date: Date; data: any }> = new Map<
+      string,
+      { date: Date; data: any }
+    >();
+    const files = fs.readdirSync(ConstantsUtil.BACKUP_BASE_PATH());
+    for (const file of files) {
+      const prex = 'fmp-historical-price-full-';
+      if (file.startsWith(prex) === true) {
+        if (
+          file
+            .substring(prex.length, file.length - 5)
+            .split(',')
+            .filter((s) => {
+              return symbol.includes(s) === true;
+            }).length > 0
+        ) {
+          const bodyFile = JSON.parse(
+            fs.readFileSync(
+              `${ConstantsUtil.BACKUP_BASE_PATH()}${file.trim()}`,
+              'utf8'
+            )
+          );
+          if (bodyFile.body && bodyFile.date) {
+            const historicalFile = (
+              bodyFile.body.historicalStockList || [bodyFile.body]
+            ).filter((h: any) => {
+              return symbol.includes(h.symbol) === true;
+            });
+            for (const historical of historicalFile) {
+              const mapped = stocks.get(historical.symbol);
+              if (!mapped || mapped.date < new Date(bodyFile.date)) {
+                stocks.set(historical.symbol, {
+                  date: new Date(bodyFile.date),
+                  data: historical
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    const result = Array.from(stocks.values()).map((s) => s.data);
+    const resultSymbols = result.map((s) => s.symbol);
+    symbol = symbol.filter((s: any) => {
+      return resultSymbols.includes(s) === false;
+    });
+    const chunkedSymbols = SymbolUtil.ChunkSymbolString(symbol, 5);
+    return result
       .concat(
         ...(await Promise.all(
-          SymbolUtil.chunkSymbolString(symbol, 5).map(async (chunked) => {
-            const result = await this.ApiRest(
+          chunkedSymbols.map(async (chunked) => {
+            const data = await this.getData(
               `${ConstantsUtil.FMP_BASE_URL()}historical-price-full/${chunked}?apikey=${
                 this.apiKey
+              }`,
+              `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-historical-price-full-${chunked}${
+                BackupService.fileExtension
               }`
             );
-            return result.historicalStockList
-              ? result.historicalStockList
-              : result;
+            let result = data.historicalStockList;
+            if (!result) {
+              result = data;
+            }
+            return result;
           })
         ))
       )
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
   public async availableTraded(): Promise<any> {
-    FMP.validApiKey(this.apiKey);
     return (
-      await this.ApiRest(
+      await this.getData(
         `${ConstantsUtil.FMP_BASE_URL()}available-traded/list?apikey=${
           this.apiKey
+        }`,
+        `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-available-traded-list${
+          BackupService.fileExtension
         }`
       )
     ).sort((a: any, b: any) => a.symbol.localeCompare(b.symbol));
   }
   public async sp500(): Promise<string[]> {
-    FMP.validApiKey(this.apiKey);
     return (
-      await this.ApiRest(
-        `${ConstantsUtil.FMP_BASE_URL()}sp500_constituent?apikey=${this.apiKey}`
+      await this.getData(
+        `${ConstantsUtil.FMP_BASE_URL()}sp500_constituent?apikey=${
+          this.apiKey
+        }`,
+        `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-sp500_constituent${
+          BackupService.fileExtension
+        }`
       )
     )
       .sort((a: any, b: any) => a.symbol.localeCompare(b.symbol))
       .map((a: any) => a.symbol);
   }
   public async nasdaq(): Promise<string[]> {
-    FMP.validApiKey(this.apiKey);
     return (
-      await this.ApiRest(
+      await this.getData(
         `${ConstantsUtil.FMP_BASE_URL()}nasdaq_constituent?apikey=${
           this.apiKey
+        }`,
+        `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-nasdaq_constituent${
+          BackupService.fileExtension
         }`
       )
     )
@@ -148,11 +269,13 @@ export class FMP {
       .map((a: any) => a.symbol);
   }
   public async dowJones(): Promise<string[]> {
-    FMP.validApiKey(this.apiKey);
     return (
-      await this.ApiRest(
+      await this.getData(
         `${ConstantsUtil.FMP_BASE_URL()}dowjones_constituent?apikey=${
           this.apiKey
+        }`,
+        `${ConstantsUtil.BACKUP_BASE_PATH()}fmp-dowjones_constituent${
+          BackupService.fileExtension
         }`
       )
     )

@@ -17,5 +17,5 @@ module.exports = {
       lines: 100
     }
   },
-  coveragePathIgnorePatterns: ['mock.ts', 'Mock.ts']
+  coveragePathIgnorePatterns: ['mock.ts', 'Mock.ts', 'backup.service.ts']
 };

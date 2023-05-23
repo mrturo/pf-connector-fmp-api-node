@@ -1,21 +1,23 @@
 import { round } from 'mathjs';
 import { Symbol as SymbolUtil } from '../../application/util/symbol.util';
 import { Domain as DomainError } from '../error/domain.error';
+import { StringUtil } from '../util/string.util';
 
+export enum StockType {
+  COMPANY = 'COMPANY',
+  ETF = 'ETF',
+  MUTUAL_FUND = 'MUTUAL_FUND',
+  UNKNOWN = 'UNKNOWN'
+}
 export class Stock {
-  public static readonly type = {
-    COMPANY: 'COMPANY',
-    ETF: 'ETF',
-    MUTUAL_FUND: 'MUTUAL_FUND',
-    UNKNOWN: 'UNKNOWN'
-  };
-  public static json(
+  public static readonly Type = StockType;
+  public static Json(
     array: Stock[],
     rateUSD: number | undefined = undefined
   ): {
     symbol: string;
     name: string | undefined;
-    type: string;
+    type: string | undefined;
     sector: string | undefined;
     industry: string | undefined;
     quantity: number;
@@ -24,18 +26,14 @@ export class Stock {
     amountLocal: number | undefined;
     percentage: number | undefined;
   }[] {
-    const result: any[] = [];
-    for (const a of array) {
-      result.push(a.json(rateUSD));
-    }
-    return result;
+    return array.map((a) => a.json(rateUSD));
   }
   private _industry!: string | undefined;
   private _name!: string | undefined;
   private _quantity!: number;
   private _sector!: string | undefined;
   private _symbol!: string;
-  private _type!: string;
+  private _type!: string | undefined;
   private _unitPriceUSD!: number;
   constructor(symbol: string, quantity: number | undefined = undefined) {
     this.industry = undefined;
@@ -58,8 +56,7 @@ export class Stock {
     return this._industry;
   }
   public set industry(value: string | undefined) {
-    this._industry = (value || '').trim();
-    this._industry = this._industry.length === 0 ? undefined : this._industry;
+    this._industry = StringUtil.TrimAndCheckEmpty(value);
   }
   public json(
     rateUSD: number | undefined = undefined,
@@ -67,7 +64,7 @@ export class Stock {
   ): {
     symbol: string;
     name: string | undefined;
-    type: string;
+    type: string | undefined;
     sector: string | undefined;
     industry: string | undefined;
     quantity: number;
@@ -76,12 +73,22 @@ export class Stock {
     amountLocal: number | undefined;
     percentage: number | undefined;
   } {
+    const localType = StringUtil.TrimAndCheckEmpty(
+      this.type,
+      StockType[StockType.COMPANY]
+    );
     return {
-      symbol: this.symbol,
-      name: this.name,
-      type: this.type,
-      sector: this.sector,
-      industry: this.industry,
+      symbol: this.symbol.trim().toUpperCase(),
+      name: StringUtil.TrimAndCheckEmpty(this.name?.toUpperCase()),
+      type: localType,
+      sector: StringUtil.TrimAndCheckEmpty(
+        this.sector?.toUpperCase(),
+        localType
+      ),
+      industry: StringUtil.TrimAndCheckEmpty(
+        this.industry?.toUpperCase(),
+        localType
+      ),
       quantity: this.quantity,
       unitPriceUSD: round(this.unitPriceUSD, 2),
       amountUSD: round(this.amountUSD, 2),
@@ -93,8 +100,7 @@ export class Stock {
     return this._name;
   }
   public set name(value: string | undefined) {
-    this._name = (value || '').trim();
-    this._name = this._name.length === 0 ? undefined : this._name;
+    this._name = StringUtil.TrimAndCheckEmpty(value);
   }
   public percentage(
     totalAmountUSD: number | undefined = undefined
@@ -121,31 +127,33 @@ export class Stock {
     return this._sector;
   }
   public set sector(value: string | undefined) {
-    this._sector = (value || '').trim();
-    this._sector = this._sector.length === 0 ? undefined : this._sector;
+    this._sector = StringUtil.TrimAndCheckEmpty(value);
   }
   public get symbol(): string {
     return this._symbol;
   }
   public set symbol(value: string) {
-    const splittedValue: string[] = SymbolUtil.getSymbol(value);
+    const splittedValue: string[] = SymbolUtil.GetSymbol(value);
     if (splittedValue.length !== 1) {
       throw new DomainError(`Invalid symbol: ${value}`);
     }
     this._symbol = splittedValue[0];
   }
-  public get type(): string {
+  public get type(): string | undefined {
     return this._type;
   }
   public set type(value: string | undefined) {
-    this._type = (value || Stock.type.COMPANY).trim().toUpperCase();
+    this._type = StringUtil.TrimAndCheckEmpty(
+      value?.toUpperCase(),
+      `${Stock.Type[Stock.Type.COMPANY]}`
+    );
     if (
       [
-        Stock.type.COMPANY,
-        Stock.type.ETF,
-        Stock.type.MUTUAL_FUND,
-        Stock.type.UNKNOWN
-      ].includes(this._type) === false
+        `${Stock.Type[Stock.Type.COMPANY]}`,
+        `${Stock.Type[Stock.Type.ETF]}`,
+        `${Stock.Type[Stock.Type.MUTUAL_FUND]}`,
+        `${Stock.Type[Stock.Type.UNKNOWN]}`
+      ].includes(StringUtil.TrimOrReplace(this._type)) === false
     ) {
       throw new DomainError(`Invalid stock type: ${value}`);
     }

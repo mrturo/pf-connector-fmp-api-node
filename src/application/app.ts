@@ -13,11 +13,11 @@ class App {
   public port: number;
   constructor(controllers: ControllerInterface[]) {
     this.app = express();
-    this.port = ConfigurationUtil.port();
+    this.port = ConfigurationUtil.Port();
     this.initializeMiddlewares();
     this.initializeRoutes(controllers);
   }
-  private initializeMiddlewares() {
+  private initializeMiddlewares(): void {
     this.app.use(
       bodyParser.json({
         limit: '50mb'
@@ -54,15 +54,15 @@ class App {
     this.app.use(swagger.urlPath, swagger.serve, swagger.setup);
     this.app.use(timeout(120000));
   }
-  private initializeRoutes(controllers: ControllerInterface[]) {
+  private initializeRoutes(controllers: ControllerInterface[]): void {
     controllers.forEach((controller: ControllerInterface) => {
       this.app.use(controller.path, controller.router);
     });
   }
-  public listen() {
+  public listen(): void {
     this.app.listen(this.port, () => {
-      const log = RandomUtil.get();
-      ConfigurationUtil.showValues(log);
+      const log = RandomUtil.Get();
+      ConfigurationUtil.ShowValues(log);
       LoggerUtil.info([log, `App listening on the port ${this.port}`]);
       console.log('*****');
     });

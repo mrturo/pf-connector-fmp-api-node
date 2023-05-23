@@ -1,5 +1,4 @@
 openapi: 3.0.1
-
 info:
   version: '1.0.0'
   title: 'Connector Financial Modeling Prep API'
@@ -8,15 +7,12 @@ info:
   contact:
     name: Support
     email: arturo.amb89@gmail.com
-
 servers:
   - url: http://localhost:3000/
     description: Local development
-
 tags:
   - name: 'Base'
     description: 'Healthcheck'
-
 paths:
   /:
     get:

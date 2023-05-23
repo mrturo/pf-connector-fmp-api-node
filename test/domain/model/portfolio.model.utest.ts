@@ -81,7 +81,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '1',
         percentage: 9.09,
-        sector: 'a'
+        sector: 'A'
       },
       {
         symbol: 'B',
@@ -93,7 +93,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '2',
         percentage: 9.09,
-        sector: 'a'
+        sector: 'A'
       },
       {
         symbol: 'C',
@@ -105,7 +105,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '3',
         percentage: 9.09,
-        sector: 'a'
+        sector: 'A'
       },
       {
         symbol: 'D',
@@ -117,7 +117,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '1',
         percentage: 9.09,
-        sector: 'b'
+        sector: 'B'
       },
       {
         symbol: 'E',
@@ -129,7 +129,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '2',
         percentage: 9.09,
-        sector: 'b'
+        sector: 'B'
       },
       {
         symbol: 'F',
@@ -141,7 +141,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '3',
         percentage: 9.09,
-        sector: 'b'
+        sector: 'B'
       },
       {
         symbol: 'G',
@@ -153,7 +153,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '1',
         percentage: 9.09,
-        sector: 'c'
+        sector: 'C'
       },
       {
         symbol: 'H',
@@ -165,7 +165,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '2',
         percentage: 9.09,
-        sector: 'c'
+        sector: 'C'
       },
       {
         symbol: 'I',
@@ -177,7 +177,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '3',
         percentage: 9.09,
-        sector: 'c'
+        sector: 'C'
       },
       {
         symbol: 'J',
@@ -189,7 +189,7 @@ describe('Class Portfolio Model', () => {
         amountLocal: undefined,
         industry: '3',
         percentage: 9.09,
-        sector: 'c'
+        sector: 'C'
       },
       {
         symbol: 'K',
@@ -199,9 +199,9 @@ describe('Class Portfolio Model', () => {
         unitPriceUSD: 1,
         amountUSD: 1,
         amountLocal: undefined,
-        industry: undefined,
+        industry: 'COMPANY',
         percentage: 9.09,
-        sector: undefined
+        sector: 'COMPANY'
       }
     ]);
     expect(portfolio.stocksBySector().length).toBeGreaterThanOrEqual(0);

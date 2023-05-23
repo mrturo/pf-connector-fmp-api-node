@@ -2,10 +2,10 @@ import * as dotenv from 'dotenv';
 import { Configuration as ConfigurationUtil } from './configuration.util';
 
 export class Environment {
-  public static init(): Environment {
+  public static Init(): Environment {
     let nodeEnv = '';
     try {
-      nodeEnv = ConfigurationUtil.nodeEnv();
+      nodeEnv = ConfigurationUtil.NodeEnv();
     } catch (error) {
       nodeEnv = '';
     }
@@ -49,4 +49,4 @@ export class Environment {
     this._file = value;
   }
 }
-Environment.init();
+Environment.Init();

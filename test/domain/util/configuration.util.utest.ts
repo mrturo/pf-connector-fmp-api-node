@@ -4,22 +4,22 @@ EnvironmentUtil.DEVELOPMENT();
 
 describe('Class Configuration', () => {
   it('Happy Path', async () => {
-    expect(ConfigurationUtil.packageName()).not.toBe('');
-    expect(ConfigurationUtil.packageName()).not.toBeNull();
-    expect(ConfigurationUtil.packageName()).not.toBeUndefined();
-    expect(ConfigurationUtil.fmpApiKey('Hola')).toBe('Hola');
-    expect(ConfigurationUtil.port()).toBeGreaterThan(0);
-    expect(ConfigurationUtil.isTrue('')).toBe(true);
-    expect(ConfigurationUtil.isTrue('N')).toBe(false);
-    expect(ConfigurationUtil.isTrue('S')).toBe(true);
-    expect(ConfigurationUtil.isTrue('SI')).toBe(true);
-    expect(ConfigurationUtil.isTrue('T')).toBe(true);
-    expect(ConfigurationUtil.isTrue('TRUE')).toBe(true);
-    expect(ConfigurationUtil.isTrue('V')).toBe(true);
-    expect(ConfigurationUtil.isTrue('VERDADERO')).toBe(true);
-    expect(ConfigurationUtil.isTrue('Y')).toBe(true);
-    expect(ConfigurationUtil.isTrue('YES')).toBe(true);
-    ConfigurationUtil.showValues();
+    expect(ConfigurationUtil.PackageName()).not.toBe('');
+    expect(ConfigurationUtil.PackageName()).not.toBeNull();
+    expect(ConfigurationUtil.PackageName()).not.toBeUndefined();
+    expect(ConfigurationUtil.FmpApiKey('Hola')).toBe('Hola');
+    expect(ConfigurationUtil.Port()).toBeGreaterThan(0);
+    expect(ConfigurationUtil.IsTrue('')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('N')).toBe(false);
+    expect(ConfigurationUtil.IsTrue('S')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('SI')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('T')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('TRUE')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('V')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('VERDADERO')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('Y')).toBe(true);
+    expect(ConfigurationUtil.IsTrue('YES')).toBe(true);
+    ConfigurationUtil.ShowValues();
     const conf = new ConfigurationUtil('${test}');
     expect(conf.value).toBe('');
   });
@@ -28,21 +28,21 @@ describe('Class Configuration', () => {
     expect(conf.value).toBe('');
   });
   it('Get numeric value from string', async () => {
-    expect(ConfigurationUtil.valueToNumber(new ConfigurationUtil('h'))).toBe(0);
-    expect(ConfigurationUtil.valueToNumber(new ConfigurationUtil('1'))).toBe(1);
+    expect(ConfigurationUtil.ValueToNumber(new ConfigurationUtil('h'))).toBe(0);
+    expect(ConfigurationUtil.ValueToNumber(new ConfigurationUtil('1'))).toBe(1);
   });
   it('Get date value from string', async () => {
     expect(
-      ConfigurationUtil.valueToDate(new ConfigurationUtil('20220110'))
+      ConfigurationUtil.ValueToDate(new ConfigurationUtil('20220110'))
     ).toStrictEqual(new Date(2022, 0, 10, 0, 0, 0, 0));
     expect(
-      ConfigurationUtil.valueToDate(new ConfigurationUtil(''))
+      ConfigurationUtil.ValueToDate(new ConfigurationUtil(''))
     ).toBeUndefined();
     expect(
-      ConfigurationUtil.valueToDate(new ConfigurationUtil('ABCDEFGH'))
+      ConfigurationUtil.ValueToDate(new ConfigurationUtil('ABCDEFGH'))
     ).toBeUndefined();
   });
   it('HideCharacters', async () => {
-    expect(ConfigurationUtil.hideCharacters('Hola')).toBe('****');
+    expect(ConfigurationUtil.HideCharacters('Hola')).toBe('****');
   });
 });

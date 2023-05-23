@@ -1,4 +1,5 @@
 import { round } from 'mathjs';
+import { StringUtil } from '../util/string.util';
 import { Stock as StockModel } from './stock.model';
 
 export class Portfolio {
@@ -48,7 +49,7 @@ export class Portfolio {
     rateUSD: number | undefined = undefined,
     totalAmountUSD: number | undefined = undefined
   ): {
-    name: string;
+    name: string | undefined;
     amountUSD: number;
     amountLocal: number | undefined;
     percentage: number | undefined;
@@ -57,10 +58,12 @@ export class Portfolio {
   }[] {
     const allStocks = Array.from(this._stocks.values());
     const sectors = [
-      ...new Set(allStocks.map((a) => (a.sector || '').trim()))
+      ...new Set(
+        allStocks.map((a) => StringUtil.TrimAndCheckEmpty(a.sector, ''))
+      )
     ].sort();
     const result: {
-      name: string;
+      name: string | undefined;
       amountUSD: number;
       amountLocal: number | undefined;
       percentage: number | undefined;
@@ -127,7 +130,7 @@ export class Portfolio {
     rateUSD: number | undefined = undefined,
     totalAmountUSD: number | undefined = undefined
   ): {
-    name: string;
+    name: string | undefined;
     amountUSD: number;
     amountLocal: number | undefined;
     percentage: number | undefined;
@@ -135,10 +138,12 @@ export class Portfolio {
   }[] {
     const allStocks = Array.from(this._stocks.values());
     const industries = [
-      ...new Set(allStocks.map((a) => (a.industry || '').trim()))
+      ...new Set(
+        allStocks.map((a) => StringUtil.TrimAndCheckEmpty(a.industry, ''))
+      )
     ].sort();
     const result: {
-      name: string;
+      name: string | undefined;
       sector: string;
       amountUSD: number;
       amountLocal: number | undefined;

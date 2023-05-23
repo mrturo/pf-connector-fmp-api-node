@@ -9,7 +9,10 @@ export class Base implements ControllerInterface {
     this.path = '/';
     this.intializeRoutes();
   }
-  public getHealthCheck(request: express.Request, response: express.Response) {
+  public getHealthCheck(
+    request: express.Request,
+    response: express.Response
+  ): express.Response<any, Record<string, any>> {
     const bodyResult = {
       message: process.env.npm_package_name,
       uptime: humanizeDuration(Math.round(process.uptime() * 1000), {
@@ -20,10 +23,10 @@ export class Base implements ControllerInterface {
     response.json(bodyResult);
     return response;
   }
-  public get path() {
+  public get path(): string {
     return this._path;
   }
-  public set path(value) {
+  public set path(value: string) {
     this._path = value;
   }
   public get router(): express.Router {
@@ -32,7 +35,7 @@ export class Base implements ControllerInterface {
   public set router(value: express.Router) {
     this._router = value;
   }
-  public intializeRoutes() {
+  public intializeRoutes(): void {
     this.router = express.Router();
     this.router.get('/', this.getHealthCheck);
   }

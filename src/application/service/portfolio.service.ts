@@ -3,14 +3,15 @@ import { Stock as StockModel } from '../../domain/model/stock.model';
 import { FMP as FmpService } from '../../infrastructure/service/fmp.service';
 
 export class Portfolio {
-  public static async update(
-    fmpApiKey: string,
-    portfolio: PortfolioModel
-  ): Promise<PortfolioModel> {
+  private static maxIterations = 1;
+  private _fmp!: FmpService;
+  constructor(fmpApiKey: string) {
+    this.fmp = new FmpService(undefined, fmpApiKey);
+  }
+  public async update(portfolio: PortfolioModel): Promise<PortfolioModel> {
     const stocks: Map<string, StockModel> = portfolio.stocks;
     const symbols: string[] = portfolio.symbols;
-    const fmp = new FmpService(undefined, fmpApiKey);
-    const profiles = await fmp.profile(symbols);
+    const profiles = await this.fmp.profile(symbols);
     for (const p of profiles) {
       const stock: StockModel | undefined = stocks.get(p.symbol);
       if (stock) {
@@ -20,20 +21,17 @@ export class Portfolio {
         stock.sector = p.sector;
         stock.type =
           p.isEtf === true
-            ? StockModel.type.ETF
+            ? StockModel.Type.ETF
             : p.isFund === true
-            ? StockModel.type.MUTUAL_FUND
-            : StockModel.type.COMPANY;
+            ? StockModel.Type.MUTUAL_FUND
+            : StockModel.Type.COMPANY;
         stocks.set(stock.symbol, stock);
       }
     }
     portfolio.stocks = stocks;
     return portfolio;
   }
-  public static async createBySymbols(
-    fmpApiKey: string,
-    symbols: string[]
-  ): Promise<PortfolioModel> {
+  private async createBySymbols(symbols: string[]): Promise<PortfolioModel> {
     const stockMap: Map<string, StockModel> = new Map<string, StockModel>();
     for (const s of symbols) {
       if (s.trim().length > 0) {
@@ -41,13 +39,12 @@ export class Portfolio {
       }
     }
     return new PortfolioModel(
-      (await Portfolio.update(fmpApiKey, new PortfolioModel(stockMap))).stocks
+      (await this.update(new PortfolioModel(stockMap))).stocks
     );
   }
-  public static async getExtended(
-    fmpApiKey: string,
+  public async getExtended(
     portfolio: PortfolioModel,
-    maxIterations = 1
+    maxIterations = Portfolio.maxIterations
   ): Promise<PortfolioModel> {
     let toAnalyze = new PortfolioModel(portfolio.stocks);
     if (portfolio.stocks.size > 0) {
@@ -55,7 +52,7 @@ export class Portfolio {
         const etfStocks: StockModel[] = Array.from(
           toAnalyze.stocks.values()
         ).filter((stock) => {
-          return stock.type === StockModel.type.ETF;
+          return stock.type === StockModel.Type.ETF;
         });
         if (etfStocks.length <= 0) {
           i = maxIterations;
@@ -67,22 +64,21 @@ export class Portfolio {
           const notEtfSymbols: StockModel[] = Array.from(
             toAnalyze.stocks.values()
           ).filter((stock) => {
-            return stock.type !== StockModel.type.ETF;
+            return stock.type !== StockModel.Type.ETF;
           });
           for (const noEtf of notEtfSymbols) {
             allStocks.set(noEtf.symbol, {
               amountUSD: noEtf.quantity * noEtf.unitPriceUSD
             });
           }
-          const fmp = new FmpService(undefined, fmpApiKey);
-          for (const etf of await fmp.etfHolder(
+          for (const etf of await this.fmp.etfHolder(
             etfStocks.map((s) => s.symbol)
           )) {
             const etfStock: StockModel = Array.from(
               toAnalyze.stocks.values()
             ).filter((stock) => {
               return (
-                stock.type === StockModel.type.ETF &&
+                stock.type === StockModel.Type.ETF &&
                 stock.symbol === etf.symbol
               );
             })[0];
@@ -106,7 +102,7 @@ export class Portfolio {
           }
           const allStocksKeys: string[] = Array.from(allStocks.keys());
           const resultStocks: Map<string, StockModel> = (
-            await Portfolio.createBySymbols(fmpApiKey, allStocksKeys)
+            await this.createBySymbols(allStocksKeys)
           ).stocks;
           for (const stockKey of allStocksKeys) {
             const stock = resultStocks.get(stockKey);
@@ -127,11 +123,17 @@ export class Portfolio {
         const temp = toAnalyze.stocks;
         const otherStock = new StockModel('OTHERS');
         otherStock.unitPriceUSD = amountUSDDiff;
-        otherStock.type = StockModel.type.UNKNOWN;
+        otherStock.type = StockModel.Type.UNKNOWN;
         temp.set(otherStock.symbol, otherStock);
         toAnalyze.stocks = temp;
       }
     }
     return toAnalyze;
+  }
+  public get fmp(): FmpService {
+    return this._fmp;
+  }
+  public set fmp(value: FmpService) {
+    this._fmp = value;
   }
 }

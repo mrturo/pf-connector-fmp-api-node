@@ -7,7 +7,7 @@ import { Configuration as ConfigurationUtil } from './configuration.util';
 import { Environment as EnvironmentUtil } from './environment.util';
 
 export class Logger {
-  private static updateBase() {
+  private static UpdateBase(): void {
     if (loggersWinston.has('app-logger') === true) {
       loggersWinston.close('app-logger');
     }
@@ -32,13 +32,13 @@ export class Logger {
     });
   }
   public static available(): boolean {
-    return ![EnvironmentUtil.JENKINS()].includes(ConfigurationUtil.nodeEnv());
+    return ![EnvironmentUtil.JENKINS()].includes(ConfigurationUtil.NodeEnv());
   }
   public static warn(message: string | string[]): string {
     let result = '';
     if (Logger.available() === true) {
-      result = Logger.getMessage(message);
-      Logger.updateBase();
+      result = Logger.GetMessage(message);
+      Logger.UpdateBase();
       loggersWinston.get('app-logger').warn(result);
     }
     return result;
@@ -46,8 +46,8 @@ export class Logger {
   public static debug(message: string | string[]): string {
     let result = '';
     if (Logger.available() === true) {
-      result = Logger.getMessage(message);
-      Logger.updateBase();
+      result = Logger.GetMessage(message);
+      Logger.UpdateBase();
       loggersWinston.get('app-logger').debug(result);
     }
     return result;
@@ -55,8 +55,8 @@ export class Logger {
   public static error(message: string | string[]): string {
     let result = '';
     if (Logger.available() === true) {
-      result = Logger.getMessage(message);
-      Logger.updateBase();
+      result = Logger.GetMessage(message);
+      Logger.UpdateBase();
       loggersWinston.get('app-logger').error(result);
     }
     return result;
@@ -64,8 +64,8 @@ export class Logger {
   public static info(message: string | string[]): string {
     let result = '';
     if (Logger.available() === true) {
-      result = Logger.getMessage(message);
-      Logger.updateBase();
+      result = Logger.GetMessage(message);
+      Logger.UpdateBase();
       loggersWinston.get('app-logger').info(result);
     }
     return result;
@@ -78,7 +78,7 @@ export class Logger {
     }
     return result;
   }
-  private static getMessage(message: undefined | string | string[]): string {
+  private static GetMessage(message: undefined | string | string[]): string {
     let result = '';
     if (message) {
       if (typeof message === 'string') {
@@ -86,11 +86,11 @@ export class Logger {
         if (message.includes('|') === false) {
           result = message;
         } else {
-          result = Logger.getMessage(message.split('|'));
+          result = Logger.GetMessage(message.split('|'));
         }
       } else {
         for (const msg of message) {
-          const m = Logger.getMessage(msg);
+          const m = Logger.GetMessage(msg);
           if (m !== '') {
             if (result === '') {
               result = m;

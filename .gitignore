@@ -109,3 +109,6 @@ test/**/*.js
 
 # SonarQube
 .scannerwork
+
+# BackUp files path
+backup/

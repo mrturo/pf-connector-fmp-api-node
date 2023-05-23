@@ -36,13 +36,13 @@ describe('Class Stock Model', () => {
       amountLocal: 1
     });
   });
-  it('Happy Path - Complete', async () => {
+  it('Happy Path - Complete 1', async () => {
     const stock: StockModel = new StockModel('VOO');
     expect(stock.json()).toEqual({
       symbol: 'VOO',
       name: undefined,
-      sector: undefined,
-      industry: undefined,
+      sector: 'COMPANY',
+      industry: 'COMPANY',
       type: 'COMPANY',
       quantity: 1,
       unitPriceUSD: 1,
@@ -50,15 +50,15 @@ describe('Class Stock Model', () => {
       amountLocal: undefined
     });
   });
-  it('Happy Path - Complete', async () => {
+  it('Happy Path - Complete 2', async () => {
     const stock1: StockModel = new StockModel('X1');
     const stock2: StockModel = new StockModel('X2');
-    expect(StockModel.json([stock1, stock2])).toEqual([
+    expect(StockModel.Json([stock1, stock2])).toEqual([
       {
         symbol: 'X1',
         name: undefined,
-        sector: undefined,
-        industry: undefined,
+        sector: 'COMPANY',
+        industry: 'COMPANY',
         type: 'COMPANY',
         quantity: 1,
         unitPriceUSD: 1,
@@ -68,8 +68,8 @@ describe('Class Stock Model', () => {
       {
         symbol: 'X2',
         name: undefined,
-        sector: undefined,
-        industry: undefined,
+        sector: 'COMPANY',
+        industry: 'COMPANY',
         type: 'COMPANY',
         quantity: 1,
         unitPriceUSD: 1,

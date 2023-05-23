@@ -1,9 +1,10 @@
+import { Domain as DomainError } from '../error/domain.error';
 import { Environment as EnvironmentUtil } from './environment.util';
 import { Logger as LoggerUtil } from './logger.util';
 import { Random as RandomUtil } from './random.util';
 
 export class Configuration {
-  public static valueToDate(c: Configuration): Date | undefined {
+  public static ValueToDate(c: Configuration): Date | undefined {
     let result: Date | undefined = undefined;
     const sDate = c.value;
     try {
@@ -15,25 +16,25 @@ export class Configuration {
         let day = parseInt(sDate.substring(6, 8));
         day = Number.isNaN(day) ? -1 : day;
         if (year < 0 || month < 0 || day < 0) {
-          throw new Error('Invalid date values');
+          throw new DomainError('Invalid date values');
         }
         result = new Date(year, month - 1, day, 0, 0, 0, 0);
       } else {
-        throw new Error(`Invalid date length (${sDate.length})`);
+        throw new DomainError(`Invalid date length (${sDate.length})`);
       }
     } catch (error) {
       // Empty block statement
     }
     return result;
   }
-  public static valueToNumber(c: Configuration, def = 0): number {
+  public static ValueToNumber(c: Configuration, def = 0): number {
     const parsed = parseInt(c.value);
     return Number.isNaN(parsed) ? def : parsed;
   }
-  public static hideCharacters(s: string): string {
+  public static HideCharacters(s: string): string {
     return '*'.repeat(s.length);
   }
-  public static isTrue(value: string): boolean {
+  public static IsTrue(value: string): boolean {
     return (
       value === '' ||
       value === 'YES' ||
@@ -46,41 +47,41 @@ export class Configuration {
       value === 'V'
     );
   }
-  public static nodeEnv(): string {
+  public static NodeEnv(): string {
     return new Configuration(process.env.NODE_ENV).value;
   }
-  public static packageName(): string {
+  public static PackageName(): string {
     return new Configuration(process.env.npm_package_name).value;
   }
-  public static port(): number {
-    return Configuration.valueToNumber(
-      new Configuration(process.env.PORT),
+  public static Port(): number {
+    return Configuration.ValueToNumber(
+      new Configuration(process.env.Port),
       3000
     );
   }
-  public static fmpApiKey(value: string | undefined = undefined): string {
+  public static FmpApiKey(value: string | undefined = undefined): string {
     if (value && typeof value === 'string' && value.trim().length > 0) {
       return new Configuration(value.trim()).value;
     }
     return new Configuration(process.env.FMP_APIKEY).value;
   }
-  public static showValues(
+  public static ShowValues(
     preLog: number | string | undefined | null = undefined
   ): void {
-    preLog = RandomUtil.get(preLog);
-    const currentEnv: EnvironmentUtil = EnvironmentUtil.init();
+    preLog = RandomUtil.Get(preLog);
+    const currentEnv: EnvironmentUtil = EnvironmentUtil.Init();
     LoggerUtil.debug([
       preLog,
-      `Environment Variables: ${Configuration.packageName()} (${
+      `Environment Variables: ${Configuration.PackageName()} (${
         currentEnv.value
       } - ${currentEnv.file})`
     ]);
     LoggerUtil.debug([
       preLog,
-      ` * fmpApiKey: ${Configuration.hideCharacters(Configuration.fmpApiKey())}`
+      ` * fmpApiKey: ${Configuration.HideCharacters(Configuration.FmpApiKey())}`
     ]);
-    LoggerUtil.debug([preLog, ` * nodeEnv: ${Configuration.nodeEnv()}`]);
-    LoggerUtil.debug([preLog, ` * port: ${Configuration.port()}`]);
+    LoggerUtil.debug([preLog, ` * nodeEnv: ${Configuration.NodeEnv()}`]);
+    LoggerUtil.debug([preLog, ` * port: ${Configuration.Port()}`]);
   }
   private _value!: string;
   constructor(value: string | null | undefined = undefined) {

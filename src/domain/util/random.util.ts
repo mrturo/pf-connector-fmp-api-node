@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export class Random {
-  public static get(
+  public static Get(
     id: number | string | undefined | null = undefined
   ): string {
     return new Random(id).id;

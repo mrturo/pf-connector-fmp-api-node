@@ -10,7 +10,7 @@ describe('Class Random', () => {
     expect(r3.id).toBe('1');
     const r4: RandomUtil = new RandomUtil(2);
     expect(r4.id).toBe('2');
-    const r5: string = RandomUtil.get();
+    const r5: string = RandomUtil.Get();
     expect(r5.length).toBeGreaterThan(0);
   });
 });

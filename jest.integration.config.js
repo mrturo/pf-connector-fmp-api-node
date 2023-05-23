@@ -10,5 +10,5 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest'
   },
-  coveragePathIgnorePatterns: ['mock.ts', 'Mock.ts']
+  coveragePathIgnorePatterns: ['mock.ts', 'Mock.ts', 'backup.service.ts']
 };

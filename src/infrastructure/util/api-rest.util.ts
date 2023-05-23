@@ -1,5 +1,6 @@
 import axios from 'axios';
 import https from 'https';
+import { StringUtil } from '../../domain/util/string.util';
 import { Infrastructure as InfrastructureError } from '../error/infrastructure.error';
 import { ApiRest as ApiRestInterface } from './api-rest.interface.util';
 
@@ -40,8 +41,8 @@ export class ApiRest implements ApiRestInterface {
     return this._method;
   }
   public set method(value: string | undefined) {
-    value = (value || '').trim().toUpperCase();
-    if (value.length === 0) {
+    value = StringUtil.TrimAndCheckEmpty(value?.toUpperCase());
+    if (!value) {
       value = ApiRest.method.GET;
     } else if (
       [
@@ -64,11 +65,11 @@ export class ApiRest implements ApiRestInterface {
     return this._url;
   }
   public set url(value: string) {
-    value = (value || '').trim();
-    if (value.length === 0) {
+    const localValue = StringUtil.TrimAndCheckEmpty(value);
+    if (!localValue) {
       throw new InfrastructureError(`URL not found`);
     }
-    this._url = value;
+    this._url = localValue;
   }
   public get json(): object {
     return {
@@ -84,7 +85,7 @@ export class ApiRest implements ApiRestInterface {
       })
     };
   }
-  public async exe() {
+  public async exe(): Promise<any> {
     try {
       const res = await axios(this.json);
       return res.data;
